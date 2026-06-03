@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IRCTC Rail Connect — Redesigned</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0d0f1a;
+    --paper: #f5f3ee;
+    --rail: #1a3a6b;
+    --rail-mid: #2755a8;
+    --accent: #e8500a;
+    --accent-soft: #fff0e8;
+    --gold: #c9922a;
+    --mint: #00917c;
+    --muted: #6b6f7e;
+    --border: #e2dfd8;
+    --card: #ffffff;
+    --shadow: 0 2px 24px rgba(13,15,26,0.08);
+    --shadow-lg: 0 8px 48px rgba(13,15,26,0.14);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(245,243,238,0.92);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 5%;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 64px;
+    animation: slideDown .6s ease both;
+  }
+  @keyframes slideDown { from { transform: translateY(-100%); opacity:0; } to { transform: none; opacity:1; } }
+
+  .logo {
+    display: flex; align-items: center; gap: 10px;
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.25rem;
+    color: var(--rail); text-decoration: none; letter-spacing: -0.02em;
+  }
+  .logo-mark {
+    width: 34px; height: 34px; background: var(--rail);
+    border-radius: 8px; display: grid; place-items: center;
+  }
+  .logo-mark svg { width: 20px; height: 20px; fill: #fff; }
+  .logo span { color: var(--accent); }
+
+  .nav-links { display: flex; gap: 2rem; list-style: none; }
+  .nav-links a {
+    font-size: .875rem; font-weight: 500; color: var(--muted);
+    text-decoration: none; transition: color .2s;
+  }
+  .nav-links a:hover { color: var(--ink); }
+
+  .nav-actions { display: flex; gap: .75rem; align-items: center; }
+  .btn-ghost {
+    font-family: 'DM Sans', sans-serif; font-size: .875rem; font-weight: 500;
+    padding: .45rem 1.1rem; border-radius: 8px; border: 1.5px solid var(--border);
+    background: none; color: var(--ink); cursor: pointer; transition: all .2s;
+  }
+  .btn-ghost:hover { border-color: var(--rail); color: var(--rail); }
+  .btn-primary {
+    font-family: 'DM Sans', sans-serif; font-size: .875rem; font-weight: 600;
+    padding: .45rem 1.3rem; border-radius: 8px; border: none;
+    background: var(--accent); color: #fff; cursor: pointer; transition: all .2s;
+  }
+  .btn-primary:hover { background: #c94208; transform: translateY(-1px); }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh; padding-top: 64px;
+    background: var(--rail);
+    position: relative; overflow: hidden;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+
+  /* Animated track lines */
+  .track-lines {
+    position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+  }
+  .track-line {
+    position: absolute; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.07), transparent);
+    width: 200%; animation: trackMove 8s linear infinite;
+  }
+  .track-line:nth-child(1) { top: 25%; animation-delay: 0s; }
+  .track-line:nth-child(2) { top: 50%; animation-delay: -2.5s; }
+  .track-line:nth-child(3) { top: 75%; animation-delay: -5s; }
+  @keyframes trackMove { from { transform: translateX(-50%); } to { transform: translateX(0); } }
+
+  /* Grid dot texture */
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 28px 28px;
+    pointer-events: none;
+  }
+
+  /* Diagonal split */
+  .hero::after {
+    content: '';
+    position: absolute; bottom: -2px; left: 0; right: 0;
+    height: 120px;
+    background: var(--paper);
+    clip-path: polygon(0 60%, 100% 0%, 100% 100%, 0% 100%);
+  }
+
+  .hero-inner {
+    position: relative; z-index: 2;
+    padding: 0 5%; max-width: 1300px; margin: 0 auto; width: 100%;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;
+    padding-top: 3rem; padding-bottom: 8rem;
+  }
+
+  .hero-text { animation: fadeUp .8s .2s ease both; }
+  @keyframes fadeUp { from { transform: translateY(30px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: .5rem;
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 100px; padding: .3rem .9rem;
+    font-size: .78rem; font-weight: 500; color: rgba(255,255,255,0.7);
+    letter-spacing: .04em; text-transform: uppercase; margin-bottom: 1.25rem;
+  }
+  .hero-eyebrow::before {
+    content: ''; width: 6px; height: 6px; background: var(--accent);
+    border-radius: 50%; animation: pulse 2s ease infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.3; } }
+
+  .hero-title {
+    font-family: 'Syne', sans-serif; font-weight: 800;
+    font-size: clamp(2.5rem, 4.5vw, 4rem); line-height: 1.1;
+    color: #fff; letter-spacing: -0.03em; margin-bottom: 1.25rem;
+  }
+  .hero-title em { font-style: normal; color: #f0a870; }
+
+  .hero-subtitle {
+    font-size: 1.05rem; color: rgba(255,255,255,0.55);
+    max-width: 440px; line-height: 1.7; margin-bottom: 2.25rem;
+  }
+
+  .hero-stats {
+    display: flex; gap: 2rem;
+  }
+  .stat { }
+  .stat-number {
+    font-family: 'Syne', sans-serif; font-size: 1.6rem; font-weight: 700;
+    color: #fff; line-height: 1;
+  }
+  .stat-label { font-size: .78rem; color: rgba(255,255,255,0.45); margin-top: .2rem; }
+
+  /* ── BOOKING CARD ── */
+  .booking-card {
+    background: #fff; border-radius: 20px;
+    box-shadow: var(--shadow-lg);
+    padding: 2rem;
+    animation: fadeUp .8s .4s ease both;
+    position: relative; overflow: hidden;
+  }
+  .booking-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--rail), var(--accent));
+  }
+
+  .booking-tabs {
+    display: flex; gap: .25rem; margin-bottom: 1.5rem;
+    background: var(--paper); border-radius: 10px; padding: .25rem;
+  }
+  .tab-btn {
+    flex: 1; padding: .55rem; border: none; border-radius: 8px; font-family: 'DM Sans', sans-serif;
+    font-size: .83rem; font-weight: 500; cursor: pointer; transition: all .2s;
+    background: none; color: var(--muted);
+  }
+  .tab-btn.active { background: #fff; color: var(--ink); box-shadow: 0 1px 6px rgba(0,0,0,0.08); }
+
+  .booking-form { display: flex; flex-direction: column; gap: 1rem; }
+
+  .field-row { display: grid; grid-template-columns: 1fr auto 1fr; gap: .5rem; align-items: end; }
+
+  .field { display: flex; flex-direction: column; gap: .4rem; }
+  .field label { font-size: .78rem; font-weight: 500; color: var(--muted); letter-spacing: .02em; }
+  .field input, .field select {
+    font-family: 'DM Sans', sans-serif; font-size: .95rem; font-weight: 500;
+    padding: .75rem 1rem; border: 1.5px solid var(--border); border-radius: 10px;
+    background: var(--paper); color: var(--ink); outline: none; transition: all .2s;
+  }
+  .field input:focus, .field select:focus { border-color: var(--rail); background: #fff; }
+
+  .swap-btn {
+    width: 38px; height: 38px; border-radius: 50%; border: 1.5px solid var(--border);
+    background: #fff; cursor: pointer; display: grid; place-items: center;
+    color: var(--muted); font-size: 1rem; transition: all .2s; flex-shrink: 0;
+    margin-bottom: 2px;
+  }
+  .swap-btn:hover { border-color: var(--rail); color: var(--rail); transform: rotate(180deg); }
+
+  .field-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+
+  .search-btn {
+    width: 100%; padding: .9rem; border: none; border-radius: 12px;
+    background: linear-gradient(135deg, var(--rail), var(--rail-mid));
+    color: #fff; font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700;
+    cursor: pointer; transition: all .2s; display: flex; align-items: center; justify-content: center; gap: .5rem;
+    margin-top: .25rem;
+  }
+  .search-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(26,58,107,0.35); }
+  .search-btn svg { width: 18px; height: 18px; fill: currentColor; }
+
+  /* ── MAIN CONTENT ── */
+  .main { padding: 5rem 5%; max-width: 1300px; margin: 0 auto; }
+
+  /* ── QUICK ACTIONS ── */
+  .section-label {
+    font-family: 'Syne', sans-serif; font-size: .78rem; font-weight: 700;
+    letter-spacing: .1em; text-transform: uppercase; color: var(--muted);
+    margin-bottom: 1.5rem; display: flex; align-items: center; gap: .75rem;
+  }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .quick-grid {
+    display: grid; grid-template-columns: repeat(6, 1fr); gap: 1rem;
+    margin-bottom: 4rem;
+  }
+
+  .quick-card {
+    background: var(--card); border: 1.5px solid var(--border);
+    border-radius: 14px; padding: 1.25rem 1rem;
+    display: flex; flex-direction: column; align-items: center; gap: .6rem;
+    cursor: pointer; transition: all .25s; text-decoration: none; color: var(--ink);
+    animation: fadeUp .6s ease both;
+  }
+  .quick-card:hover { border-color: var(--rail-mid); transform: translateY(-3px); box-shadow: var(--shadow); }
+
+  .quick-icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    display: grid; place-items: center; font-size: 1.4rem;
+  }
+  .quick-label { font-size: .8rem; font-weight: 500; text-align: center; color: var(--muted); line-height: 1.3; }
+
+  .ic-blue { background: #e8eeff; }
+  .ic-orange { background: var(--accent-soft); }
+  .ic-green { background: #e6f5f2; }
+  .ic-gold { background: #fdf4e3; }
+  .ic-purple { background: #f0eaff; }
+  .ic-teal { background: #e4f7f7; }
+
+  /* ── DEALS SECTION ── */
+  .two-col { display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; margin-bottom: 4rem; }
+
+  .section-title {
+    font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 700;
+    margin-bottom: 1.25rem; letter-spacing: -.02em;
+  }
+
+  .deals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+  .deal-card {
+    border-radius: 14px; overflow: hidden; cursor: pointer;
+    transition: transform .25s, box-shadow .25s; position: relative;
+  }
+  .deal-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+
+  .deal-img {
+    height: 160px; display: flex; align-items: flex-end; padding: 1rem;
+    background-size: cover; background-position: center; position: relative;
+  }
+  .deal-img::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 30%, rgba(0,0,0,0.65));
+  }
+  .deal-info { position: relative; z-index: 1; }
+  .deal-title { color: #fff; font-weight: 700; font-size: .95rem; }
+  .deal-sub { color: rgba(255,255,255,0.7); font-size: .78rem; }
+  .deal-badge {
+    position: absolute; top: .75rem; right: .75rem; z-index: 1;
+    background: var(--accent); color: #fff;
+    font-size: .7rem; font-weight: 700; padding: .2rem .6rem; border-radius: 100px;
+    letter-spacing: .04em;
+  }
+
+  /* Travel gradients */
+  .d1 { background: linear-gradient(135deg, #1a5276, #2e86c1); }
+  .d2 { background: linear-gradient(135deg, #784212, #d35400); }
+  .d3 { background: linear-gradient(135deg, #145a32, #1e8449); }
+  .d4 { background: linear-gradient(135deg, #4a235a, #884ea0); }
+
+  /* ── TRAIN STATUS PANEL ── */
+  .status-panel {
+    background: var(--card); border: 1.5px solid var(--border);
+    border-radius: 16px; padding: 1.5rem;
+  }
+  .status-input-row {
+    display: flex; gap: .5rem; margin-bottom: 1.25rem;
+  }
+  .status-input {
+    flex: 1; padding: .65rem 1rem; border: 1.5px solid var(--border);
+    border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: .9rem;
+    background: var(--paper); outline: none; transition: border-color .2s; color: var(--ink);
+  }
+  .status-input:focus { border-color: var(--rail); }
+  .status-btn {
+    padding: .65rem 1.1rem; background: var(--rail); color: #fff;
+    border: none; border-radius: 10px; font-family: 'DM Sans', sans-serif;
+    font-weight: 600; font-size: .85rem; cursor: pointer; transition: background .2s;
+    white-space: nowrap;
+  }
+  .status-btn:hover { background: var(--rail-mid); }
+
+  .train-result {
+    border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+    font-size: .875rem;
+  }
+  .train-header {
+    background: var(--rail); color: #fff; padding: .75rem 1rem;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .train-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: .95rem; }
+  .train-num { font-size: .78rem; opacity: .7; }
+  .on-time { background: var(--mint); color: #fff; font-size: .7rem; font-weight: 700; padding: .2rem .65rem; border-radius: 100px; }
+
+  .station-list { }
+  .station-row {
+    display: grid; grid-template-columns: 80px 1fr auto;
+    align-items: center; padding: .65rem 1rem; gap: .75rem;
+    border-bottom: 1px solid var(--border); transition: background .2s;
+  }
+  .station-row:last-child { border-bottom: none; }
+  .station-row:hover { background: var(--paper); }
+  .station-time { font-weight: 700; color: var(--ink); font-size: .9rem; }
+  .station-name { color: var(--ink); font-size: .88rem; }
+  .station-code { color: var(--muted); font-size: .75rem; }
+  .dot-line {
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    position: relative;
+  }
+  .dot { width: 9px; height: 9px; border-radius: 50%; border: 2px solid var(--border); background: #fff; }
+  .dot.origin { background: var(--mint); border-color: var(--mint); }
+  .dot.dest { background: var(--accent); border-color: var(--accent); }
+  .dot.current { background: var(--rail); border-color: var(--rail); box-shadow: 0 0 0 3px rgba(26,58,107,0.2); }
+  .platform-badge { font-size: .72rem; color: var(--muted); white-space: nowrap; }
+
+  /* ── POPULAR ROUTES ── */
+  .routes-section { margin-bottom: 4rem; }
+  .routes-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+
+  .route-card {
+    background: var(--card); border: 1.5px solid var(--border);
+    border-radius: 14px; padding: 1.25rem;
+    cursor: pointer; transition: all .25s;
+    animation: fadeUp .6s ease both;
+  }
+  .route-card:hover { border-color: var(--rail-mid); box-shadow: var(--shadow); transform: translateY(-2px); }
+
+  .route-cities {
+    display: flex; align-items: center; gap: .5rem;
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem;
+    margin-bottom: .5rem; color: var(--ink);
+  }
+  .route-arrow { color: var(--accent); font-size: .9rem; }
+  .route-meta { display: flex; justify-content: space-between; align-items: center; }
+  .route-trains { font-size: .78rem; color: var(--muted); }
+  .route-price {
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: .9rem; color: var(--mint);
+  }
+
+  /* ── FEATURES ── */
+  .features-section { margin-bottom: 4rem; }
+  .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+
+  .feature-card {
+    background: var(--card); border: 1.5px solid var(--border);
+    border-radius: 16px; padding: 1.75rem;
+    animation: fadeUp .6s ease both;
+  }
+  .feature-icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    display: grid; place-items: center; font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .feature-title {
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem;
+    margin-bottom: .5rem;
+  }
+  .feature-desc { font-size: .875rem; color: var(--muted); line-height: 1.65; }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--ink); color: rgba(255,255,255,0.6);
+    padding: 3rem 5% 2rem;
+  }
+  .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem; margin-bottom: 2rem; max-width: 1300px; margin-left: auto; margin-right: auto; }
+  .footer-brand .logo { color: #fff; margin-bottom: .75rem; display: flex; }
+  .footer-brand p { font-size: .85rem; line-height: 1.7; max-width: 260px; }
+  .footer-col h4 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: .9rem; color: #fff; margin-bottom: 1rem; }
+  .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: .5rem; }
+  .footer-col a { color: rgba(255,255,255,0.5); text-decoration: none; font-size: .85rem; transition: color .2s; }
+  .footer-col a:hover { color: #fff; }
+  .footer-bottom { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.5rem; display: flex; justify-content: space-between; align-items: center; font-size: .8rem; max-width: 1300px; margin: 0 auto; }
+
+  /* ── ANNOUNCEMENT STRIP ── */
+  .announcement {
+    background: linear-gradient(90deg, var(--rail), var(--rail-mid));
+    color: #fff; padding: .6rem 5%; display: flex; align-items: center; gap: 1rem;
+    font-size: .83rem; overflow: hidden;
+  }
+  .ann-badge {
+    background: var(--accent); font-weight: 700; font-size: .7rem;
+    padding: .15rem .5rem; border-radius: 4px; white-space: nowrap; flex-shrink: 0;
+  }
+  .ann-scroll { overflow: hidden; flex: 1; white-space: nowrap; }
+  .ann-text { display: inline-block; animation: scroll 20s linear infinite; }
+  @keyframes scroll { from { transform: translateX(100%); } to { transform: translateX(-100%); } }
+
+  /* stagger animations */
+  .quick-card:nth-child(1) { animation-delay: .05s; }
+  .quick-card:nth-child(2) { animation-delay: .1s; }
+  .quick-card:nth-child(3) { animation-delay: .15s; }
+  .quick-card:nth-child(4) { animation-delay: .2s; }
+  .quick-card:nth-child(5) { animation-delay: .25s; }
+  .quick-card:nth-child(6) { animation-delay: .3s; }
+  .route-card:nth-child(2) { animation-delay: .1s; }
+  .route-card:nth-child(3) { animation-delay: .2s; }
+  .route-card:nth-child(4) { animation-delay: .3s; }
+  .feature-card:nth-child(2) { animation-delay: .15s; }
+  .feature-card:nth-child(3) { animation-delay: .3s; }
+
+  /* ── TOOLTIP / HOVER STATES ── */
+  .chip {
+    display: inline-flex; align-items: center; gap: .3rem;
+    background: var(--paper); border: 1px solid var(--border);
+    border-radius: 100px; padding: .2rem .7rem; font-size: .75rem;
+    font-weight: 500; color: var(--muted);
+  }
+  .chip-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .chip-green .chip-dot { background: var(--mint); }
+  .chip-orange .chip-dot { background: var(--accent); }
+
+  /* ── PROGRESS BAR ── */
+  .quota-bar { height: 5px; background: var(--border); border-radius: 100px; overflow: hidden; margin-top: .3rem; }
+  .quota-fill { height: 100%; border-radius: 100px; transition: width .8s ease; }
+  .q-green { background: var(--mint); }
+  .q-orange { background: var(--gold); }
+  .q-red { background: var(--accent); }
+
+  @media (max-width: 1024px) {
+    .hero-inner { grid-template-columns: 1fr; padding-bottom: 6rem; }
+    .booking-card { max-width: 540px; }
+    .quick-grid { grid-template-columns: repeat(3, 1fr); }
+    .two-col { grid-template-columns: 1fr; }
+    .routes-grid { grid-template-columns: 1fr 1fr; }
+    .footer-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 640px) {
+    .nav-links { display: none; }
+    .quick-grid { grid-template-columns: repeat(3, 1fr); }
+    .routes-grid { grid-template-columns: 1fr 1fr; }
+    .features-grid { grid-template-columns: 1fr; }
+    .field-row { grid-template-columns: 1fr; }
+    .swap-btn { display: none; }
+    .hero-stats { flex-wrap: wrap; gap: 1.25rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Announcement -->
+<div class="announcement">
+  <span class="ann-badge">LIVE</span>
+  <div class="ann-scroll">
+    <span class="ann-text">🚆 Vande Bharat Express now serving 50+ routes nationwide &nbsp;&nbsp;&nbsp; 🎟️ Tatkal booking opens at 10 AM for AC class, 11 AM for non-AC &nbsp;&nbsp;&nbsp; 🛡️ Enhanced safety measures across all zones &nbsp;&nbsp;&nbsp; 💳 Get 5% cashback on UPI payments — valid till June 30 &nbsp;&nbsp;&nbsp;</span>
+  </div>
+</div>
+
+<!-- Navigation -->
+<nav>
+  <a href="#" class="logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+    </div>
+    Rail<span>Connect</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#">Book Tickets</a></li>
+    <li><a href="#">My Bookings</a></li>
+    <li><a href="#">Train Status</a></li>
+    <li><a href="#">Tourism</a></li>
+    <li><a href="#">Passes</a></li>
+  </ul>
+  <div class="nav-actions">
+    <button class="btn-ghost">Register</button>
+    <button class="btn-primary">Login</button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="track-lines">
+    <div class="track-line"></div>
+    <div class="track-line"></div>
+    <div class="track-line"></div>
+  </div>
+  <div class="hero-inner">
+    <div class="hero-text">
+      <div class="hero-eyebrow">Indian Railways — Reimagined</div>
+      <h1 class="hero-title">
+        Travel <em>seamlessly</em><br>across India
+      </h1>
+      <p class="hero-subtitle">
+        Book train tickets, check live status, and explore the entire rail network — all in one clean, fast experience built for 140 crore journeys.
+      </p>
+      <div class="hero-stats">
+        <div class="stat">
+          <div class="stat-number">14,000+</div>
+          <div class="stat-label">Daily Trains</div>
+        </div>
+        <div class="stat">
+          <div class="stat-number">7,325</div>
+          <div class="stat-label">Stations</div>
+        </div>
+        <div class="stat">
+          <div class="stat-number">2.4Cr</div>
+          <div class="stat-label">Daily Passengers</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Booking Card -->
+    <div class="booking-card">
+      <div class="booking-tabs">
+        <button class="tab-btn active" onclick="setTab(this)">🚆 Trains</button>
+        <button class="tab-btn" onclick="setTab(this)">✈️ Flight+Rail</button>
+        <button class="tab-btn" onclick="setTab(this)">🏨 Hotels</button>
+        <button class="tab-btn" onclick="setTab(this)">🚌 Buses</button>
+      </div>
+      <div class="booking-form">
+        <div class="field-row">
+          <div class="field">
+            <label>FROM</label>
+            <input type="text" placeholder="New Delhi (NDLS)" value="New Delhi (NDLS)">
+          </div>
+          <button class="swap-btn" onclick="swapStations()" title="Swap stations">⇌</button>
+          <div class="field">
+            <label>TO</label>
+            <input type="text" placeholder="Mumbai Central (MMCT)" value="Mumbai Central (MMCT)">
+          </div>
+        </div>
+        <div class="field-row-2">
+          <div class="field">
+            <label>DATE OF JOURNEY</label>
+            <input type="date" value="2026-06-03">
+          </div>
+          <div class="field">
+            <label>CLASS</label>
+            <select>
+              <option>All Classes</option>
+              <option>Sleeper (SL)</option>
+              <option>3rd AC (3A)</option>
+              <option>2nd AC (2A)</option>
+              <option>1st AC (1A)</option>
+              <option>CC Chair Car</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-row-2">
+          <div class="field">
+            <label>QUOTA</label>
+            <select>
+              <option>General</option>
+              <option>Tatkal</option>
+              <option>Ladies</option>
+              <option>Senior Citizen</option>
+              <option>Defence</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>PASSENGERS</label>
+            <select>
+              <option>1 Passenger</option>
+              <option>2 Passengers</option>
+              <option>3 Passengers</option>
+              <option>4 Passengers</option>
+              <option>5 Passengers</option>
+            </select>
+          </div>
+        </div>
+        <button class="search-btn">
+          <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+          Search Trains
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Main Content -->
+<div class="main">
+
+  <!-- Quick Actions -->
+  <div class="section-label">Quick Actions</div>
+  <div class="quick-grid">
+    <a href="#" class="quick-card">
+      <div class="quick-icon ic-blue">🎫</div>
+      <span class="quick-label">Book Ticket</span>
+    </a>
+    <a href="#" class="quick-card">
+      <div class="quick-icon ic-orange">🔍</div>
+      <span class="quick-label">PNR Status</span>
+    </a>
+    <a href="#" class="quick-card">
+      <div class="quick-icon ic-green">📍</div>
+      <span class="quick-label">Live Train</span>
+    </a>
+    <a href="#" class="quick-card">
+      <div class="quick-icon ic-gold">❌</div>
+      <span class="quick-label">Cancel Ticket</span>
+    </a>
+    <a href="#" class="quick-card">
+      <div class="quick-icon ic-purple">🗓️</div>
+      <span class="quick-label">Season Pass</span>
+    </a>
+    <a href="#" class="quick-card">
+      <div class="quick-icon ic-teal">🚉</div>
+      <span class="quick-label">Platform Ticket</span>
+    </a>
+  </div>
+
+  <!-- Deals + Status -->
+  <div class="two-col">
+    <div>
+      <div class="section-title">Explore India by Rail</div>
+      <div class="deals-grid">
+        <div class="deal-card">
+          <div class="deal-img d1">
+            <span class="deal-badge">UP TO 20% OFF</span>
+            <div class="deal-info">
+              <div class="deal-title">Himalayan Circuit</div>
+              <div class="deal-sub">Delhi → Shimla → Manali</div>
+            </div>
+          </div>
+        </div>
+        <div class="deal-card">
+          <div class="deal-img d2">
+            <span class="deal-badge">HERITAGE ROUTE</span>
+            <div class="deal-info">
+              <div class="deal-title">Rajasthan Express</div>
+              <div class="deal-sub">Jaipur → Jodhpur → Jaisalmer</div>
+            </div>
+          </div>
+        </div>
+        <div class="deal-card">
+          <div class="deal-img d3">
+            <span class="deal-badge">ECO PASS</span>
+            <div class="deal-info">
+              <div class="deal-title">Kerala Backwaters</div>
+              <div class="deal-sub">Trivandrum → Alleppey</div>
+            </div>
+          </div>
+        </div>
+        <div class="deal-card">
+          <div class="deal-img d4">
+            <span class="deal-badge">LUXURY</span>
+            <div class="deal-info">
+              <div class="deal-title">Palace on Wheels</div>
+              <div class="deal-sub">7-Night Royal Journey</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Train Status Panel -->
+    <div>
+      <div class="section-title">Live Train Status</div>
+      <div class="status-panel">
+        <div class="status-input-row">
+          <input class="status-input" type="text" placeholder="Train no. or name" id="trainInput">
+          <button class="status-btn" onclick="showStatus()">Track</button>
+        </div>
+        <div id="trainResult" style="display:none;" class="train-result">
+          <div class="train-header">
+            <div>
+              <div class="train-name">Rajdhani Express</div>
+              <div class="train-num">12951 &nbsp;·&nbsp; New Delhi → Mumbai Central</div>
+            </div>
+            <span class="on-time">ON TIME</span>
+          </div>
+          <div class="station-list">
+            <div class="station-row">
+              <div class="station-time">16:55<br><small style="color:var(--muted);font-size:.7rem">Dep</small></div>
+              <div>
+                <div class="station-name">New Delhi</div>
+                <div class="station-code">NDLS • Origin</div>
+              </div>
+              <div>
+                <div class="dot origin"></div>
+                <div class="platform-badge">Pltf. 16</div>
+              </div>
+            </div>
+            <div class="station-row">
+              <div class="station-time">19:20<br><small style="color:var(--muted);font-size:.7rem">Arr</small></div>
+              <div>
+                <div class="station-name">Kota Jn</div>
+                <div class="station-code">KOTA • Current</div>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
+                <div class="dot current"></div>
+                <div class="platform-badge">Pltf. 2</div>
+              </div>
+            </div>
+            <div class="station-row">
+              <div class="station-time">23:00<br><small style="color:var(--muted);font-size:.7rem">Arr</small></div>
+              <div>
+                <div class="station-name">Vadodara Jn</div>
+                <div class="station-code">BRC • Upcoming</div>
+              </div>
+              <div>
+                <div class="dot"></div>
+                <div class="platform-badge">Pltf. 1</div>
+              </div>
+            </div>
+            <div class="station-row">
+              <div class="station-time">08:35<br><small style="color:var(--muted);font-size:.7rem">Arr +1</small></div>
+              <div>
+                <div class="station-name">Mumbai Central</div>
+                <div class="station-code">MMCT • Destination</div>
+              </div>
+              <div>
+                <div class="dot dest"></div>
+                <div class="platform-badge">Pltf. 5</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="statusPlaceholder" style="text-align:center;padding:2rem;color:var(--muted);font-size:.875rem;">
+          Enter a train number or name to track it live 📍
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Popular Routes -->
+  <div class="routes-section">
+    <div class="section-title">Popular Routes</div>
+    <div class="routes-grid">
+      <div class="route-card">
+        <div class="route-cities">NDLS <span class="route-arrow">→</span> MMCT</div>
+        <div style="font-size:.8rem;color:var(--muted);margin-bottom:.5rem;">New Delhi → Mumbai</div>
+        <div class="route-meta">
+          <span class="chip chip-green"><span class="chip-dot"></span> Seats avail.</span>
+          <span class="route-price">₹ 785+</span>
+        </div>
+        <div class="quota-bar" style="margin-top:.75rem;"><div class="quota-fill q-green" style="width:68%"></div></div>
+      </div>
+      <div class="route-card">
+        <div class="route-cities">MAS <span class="route-arrow">→</span> CSTM</div>
+        <div style="font-size:.8rem;color:var(--muted);margin-bottom:.5rem;">Chennai → Mumbai CST</div>
+        <div class="route-meta">
+          <span class="chip chip-orange"><span class="chip-dot"></span> Filling fast</span>
+          <span class="route-price">₹ 680+</span>
+        </div>
+        <div class="quota-bar" style="margin-top:.75rem;"><div class="quota-fill q-orange" style="width:82%"></div></div>
+      </div>
+      <div class="route-card">
+        <div class="route-cities">HWH <span class="route-arrow">→</span> NDLS</div>
+        <div style="font-size:.8rem;color:var(--muted);margin-bottom:.5rem;">Howrah → New Delhi</div>
+        <div class="route-meta">
+          <span class="chip chip-green"><span class="chip-dot"></span> Seats avail.</span>
+          <span class="route-price">₹ 920+</span>
+        </div>
+        <div class="quota-bar" style="margin-top:.75rem;"><div class="quota-fill q-green" style="width:55%"></div></div>
+      </div>
+      <div class="route-card">
+        <div class="route-cities">BLR <span class="route-arrow">→</span> HYB</div>
+        <div style="font-size:.8rem;color:var(--muted);margin-bottom:.5rem;">Bangalore → Hyderabad</div>
+        <div class="route-meta">
+          <span class="chip" style="border-color:#fcc;background:#fff5f5;color:var(--accent)"><span class="chip-dot" style="background:var(--accent)"></span> Almost full</span>
+          <span class="route-price">₹ 410+</span>
+        </div>
+        <div class="quota-bar" style="margin-top:.75rem;"><div class="quota-fill q-red" style="width:94%"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Features -->
+  <div class="features-section">
+    <div class="section-title">Why book with Rail Connect</div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon ic-blue">⚡</div>
+        <div class="feature-title">60-Second Booking</div>
+        <p class="feature-desc">Streamlined checkout with saved passenger profiles, auto-fill, and one-tap payment — no more re-entering the same details every time.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon ic-green">🔔</div>
+        <div class="feature-title">Smart Alerts</div>
+        <p class="feature-desc">Real-time notifications for PNR confirmation, platform changes, delays, and chart preparation — delivered before you even need to ask.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon ic-orange">🎯</div>
+        <div class="feature-title">Availability Predictor</div>
+        <p class="feature-desc">AI-powered waitlist prediction tells you the likelihood of your ticket getting confirmed, so you can book alternatives early with confidence.</p>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- Footer -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <div class="logo" style="color:#fff;margin-bottom:.75rem;">
+        <div class="logo-mark"><svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg></div>
+        Rail<span style="color:#f0a870">Connect</span>
+      </div>
+      <p>A redesigned vision for Indian Railways ticketing — faster, cleaner, and built for every Indian traveller.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Book</h4>
+      <ul>
+        <li><a href="#">Trains</a></li>
+        <li><a href="#">Buses</a></li>
+        <li><a href="#">Flights</a></li>
+        <li><a href="#">Hotels</a></li>
+        <li><a href="#">Tour Packages</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Services</h4>
+      <ul>
+        <li><a href="#">PNR Status</a></li>
+        <li><a href="#">Cancellation</a></li>
+        <li><a href="#">E-Catering</a></li>
+        <li><a href="#">Retiring Rooms</a></li>
+        <li><a href="#">Cloak Room</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Support</h4>
+      <ul>
+        <li><a href="#">Help Centre</a></li>
+        <li><a href="#">Refund Policy</a></li>
+        <li><a href="#">Accessibility</a></li>
+        <li><a href="#">Contact Us</a></li>
+        <li><a href="#">Feedback</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 Rail Connect — Indian Railways Redesign Concept</span>
+    <span>Designed for the UI/UX Redesign Challenge</span>
+  </div>
+</footer>
+
+<script>
+function setTab(btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function swapStations() {
+  const inputs = document.querySelectorAll('.booking-form input[type="text"]');
+  const a = inputs[0].value, b = inputs[1].value;
+  inputs[0].value = b; inputs[1].value = a;
+}
+
+function showStatus() {
+  const val = document.getElementById('trainInput').value.trim();
+  const result = document.getElementById('trainResult');
+  const placeholder = document.getElementById('statusPlaceholder');
+  if (val.length > 0) {
+    result.style.display = 'block';
+    placeholder.style.display = 'none';
+  }
+}
+
+// Animate quota bars on scroll
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.querySelectorAll('.quota-fill').forEach(bar => {
+        const w = bar.style.width; bar.style.width = '0';
+        setTimeout(() => bar.style.width = w, 100);
+      });
+    }
+  });
+}, { threshold: 0.3 });
+document.querySelectorAll('.route-card').forEach(c => observer.observe(c));
+</script>
+</body>
+</html>
